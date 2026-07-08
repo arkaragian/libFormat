@@ -81,6 +81,24 @@ public class MarkdownPrinterTests
     }
 
     [Fact]
+    public void Print_DateTimeValues_RenderUsingDefaultDateFormat()
+    {
+        Milestone[] milestones =
+        [
+            new() { Name = "Release", DueDate = new DateTime(2026, 7, 8) }
+        ];
+
+        string markdown = MarkdownPrinter.Print(milestones);
+        string expected = """
+            | Name    | DueDate     |
+            | ------- | ----------- |
+            | Release | 08-Jul-2026 |
+            """;
+
+        Assert.Equal(expected, markdown);
+    }
+
+    [Fact]
     public void Print_NullValuesAndNullItems_RenderEmptyCells()
     {
         Note?[] notes =
@@ -152,5 +170,12 @@ public class MarkdownPrinterTests
     private sealed class Note
     {
         public string? Text { get; init; }
+    }
+
+    private sealed class Milestone
+    {
+        public string Name { get; init; } = string.Empty;
+
+        public DateTime DueDate { get; init; }
     }
 }

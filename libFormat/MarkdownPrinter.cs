@@ -87,7 +87,7 @@ public static class MarkdownPrinter {
 
         List<T> materializedValues = [.. values];
         List<string> lines = [];
-        List<int> columnWidths = GetColumnWidths(materializedValues, members);
+        List<int> columnWidths = GetColumnWidths(materializedValues, members, formatOptions);
 
         if (!string.IsNullOrWhiteSpace(title)) {
             lines.Add($"### {EscapeTitle(title)}");
@@ -107,15 +107,7 @@ public static class MarkdownPrinter {
             for (int index = 0; index < members.Count; index++) {
                 IMemberAccessor member = members[index];
                 object? memberValue = member.GetValue(value);
-                if(memberValue is null) {
-                    row.Add(Pad(string.Empty, columnWidths[index]));
-                    continue;
-                }
-                if(memberValue is DateTime dtTemp) {
-                    row.Add(Pad(dtTemp.ToString(formatOptions.DateFormatString,CultureInfo.InvariantCulture), columnWidths[index]));
-                } else {
-                    row.Add(Pad(Escape(memberValue?.ToString() ?? string.Empty), columnWidths[index]));
-                }
+                row.Add(Pad(FormatCellValue(member.GetValue(value), formatOptions), columnWidths[index]));
             }
             lines.Add(BuildRow(row));
         }
@@ -130,7 +122,7 @@ public static class MarkdownPrinter {
     /// <param name="values">The materialized values that will be rendered as rows.</param>
     /// <param name="members">The members that define the table columns.</param>
     /// <returns>A list containing the width of each column.</returns>
-    private static List<int> GetColumnWidths<T>(List<T> values, List<IMemberAccessor> members) {
+    private static List<int> GetColumnWidths<T>(List<T> values, List<IMemberAccessor> members, MarkdownFormatOptions formatOptions) {
         List<int> widths = members
             .Select(member => member.ColumnName.Length)
             .ToList();
@@ -141,7 +133,7 @@ public static class MarkdownPrinter {
             }
 
             for (int index = 0; index < members.Count; index++) {
-                string text = Escape(members[index].GetValue(value)?.ToString() ?? string.Empty);
+                string text = FormatCellValue(members[index].GetValue(value), formatOptions);
                 int width = TextWidthProvider.GetWidestText([text]);
                 if (width > widths[index]) {
                     widths[index] = width;
@@ -150,6 +142,24 @@ public static class MarkdownPrinter {
         }
 
         return widths;
+    }
+
+    /// <summary>
+    /// Formats a member value as it will appear in a markdown table cell.
+    /// </summary>
+    /// <param name="value">The raw member value.</param>
+    /// <param name="formatOptions">The formatting options used for special value types.</param>
+    /// <returns>The formatted cell text.</returns>
+    private static string FormatCellValue(object? value, MarkdownFormatOptions formatOptions) {
+        if (value is null) {
+            return string.Empty;
+        }
+
+        if (value is DateTime dateTime) {
+            return dateTime.ToString(formatOptions.DateFormatString, CultureInfo.InvariantCulture);
+        }
+
+        return Escape(value.ToString() ?? string.Empty);
     }
 
     /// <summary>
