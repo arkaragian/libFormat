@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 
 namespace libFormat;
@@ -32,7 +33,7 @@ public static class MarkdownPrinter {
         ArgumentNullException.ThrowIfNull(values);
 
         List<IMemberAccessor> members = GetAllMembers(typeof(T));
-        return BuildTable(values, members, title);
+        return BuildTable(values, members, title, formatOptions: null);
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public static class MarkdownPrinter {
         ArgumentNullException.ThrowIfNull(memberNames);
 
         List<IMemberAccessor> members = GetSelectedMembers(typeof(T), memberNames);
-        return BuildTable(values, members, title);
+        return BuildTable(values, members, title, formatOptions: null);
     }
 
     /// <summary>
@@ -73,9 +74,15 @@ public static class MarkdownPrinter {
     /// <param name="members">The members that define the table columns.</param>
     /// <param name="title">The optional title displayed above the generated table.</param>
     /// <returns>A markdown table string, or an empty string when there are no columns to render.</returns>
-    private static string BuildTable<T>(IEnumerable<T> values, List<IMemberAccessor> members, string? title) {
+    private static string BuildTable<T>(IEnumerable<T> values, List<IMemberAccessor> members, string? title, MarkdownFormatOptions? formatOptions) {
         if (members.Count == 0) {
             return string.Empty;
+        }
+
+        if(formatOptions is null) {
+            formatOptions = new MarkdownFormatOptions() {
+                DateFormatString = "dd-MMM-yyyy"
+            };
         }
 
         List<T> materializedValues = [.. values];
@@ -100,7 +107,15 @@ public static class MarkdownPrinter {
             for (int index = 0; index < members.Count; index++) {
                 IMemberAccessor member = members[index];
                 object? memberValue = member.GetValue(value);
-                row.Add(Pad(Escape(memberValue?.ToString() ?? string.Empty), columnWidths[index]));
+                if(memberValue is null) {
+                    row.Add(Pad(string.Empty, columnWidths[index]));
+                    continue;
+                }
+                if(memberValue is DateTime dtTemp) {
+                    row.Add(Pad(dtTemp.ToString(formatOptions.DateFormatString,CultureInfo.InvariantCulture), columnWidths[index]));
+                } else {
+                    row.Add(Pad(Escape(memberValue?.ToString() ?? string.Empty), columnWidths[index]));
+                }
             }
             lines.Add(BuildRow(row));
         }
