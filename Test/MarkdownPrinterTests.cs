@@ -12,14 +12,14 @@ public class MarkdownPrinterTests
         ];
 
         string markdown = MarkdownPrinter.Print(projects);
+        string expected = """
+            | Name      | Status  | OpenTasks |
+            | --------- | ------- | --------- |
+            | Website   | Active  | 4         |
+            | Migration | Planned | 12        |
+            """;
 
-        Assert.Equal(
-            Lines(
-                "| Name      | Status  | OpenTasks |",
-                "| --------- | ------- | --------- |",
-                "| Website   | Active  | 4         |",
-                "| Migration | Planned | 12        |"),
-            markdown);
+        Assert.Equal(expected, markdown);
     }
 
     [Fact]
@@ -32,14 +32,14 @@ public class MarkdownPrinterTests
         ];
 
         string markdown = MarkdownPrinter.Print(projects, [nameof(Project.Status), nameof(Project.Name)]);
+        string expected = """
+            | Status  | Name      |
+            | ------- | --------- |
+            | Active  | Website   |
+            | Planned | Migration |
+            """;
 
-        Assert.Equal(
-            Lines(
-                "| Status  | Name      |",
-                "| ------- | --------- |",
-                "| Active  | Website   |",
-                "| Planned | Migration |"),
-            markdown);
+        Assert.Equal(expected, markdown);
     }
 
     [Fact]
@@ -51,15 +51,15 @@ public class MarkdownPrinterTests
         ];
 
         string markdown = MarkdownPrinter.Print(items, "Sprint work");
+        string expected = """
+            ### Sprint work
 
-        Assert.Equal(
-            Lines(
-                "### Sprint work",
-                string.Empty,
-                "| Work title | Assigned to |",
-                "| ---------- | ----------- |",
-                "| Fix login  | Ada         |"),
-            markdown);
+            | Work title | Assigned to |
+            | ---------- | ----------- |
+            | Fix login  | Ada         |
+            """;
+
+        Assert.Equal(expected, markdown);
     }
 
     [Fact]
@@ -71,13 +71,13 @@ public class MarkdownPrinterTests
         ];
 
         string markdown = MarkdownPrinter.Print(notes);
+        string expected = """
+            | Text                 |
+            | -------------------- |
+            | alpha\|beta<br/>next |
+            """;
 
-        Assert.Equal(
-            Lines(
-                "| Text                 |",
-                "| -------------------- |",
-                "| alpha\\|beta<br/>next |"),
-            markdown);
+        Assert.Equal(expected, markdown);
     }
 
     [Fact]
@@ -90,14 +90,14 @@ public class MarkdownPrinterTests
         ];
 
         string markdown = MarkdownPrinter.Print(notes);
+        string expected = """
+            | Text |
+            | ---- |
+            |      |
+            |      |
+            """;
 
-        Assert.Equal(
-            Lines(
-                "| Text |",
-                "| ---- |",
-                "|      |",
-                "|      |"),
-            markdown);
+        Assert.Equal(expected, markdown);
     }
 
     [Fact]
@@ -129,11 +129,6 @@ public class MarkdownPrinterTests
         ];
 
         Assert.Equal(9, TextWidthProvider.GetWidestText(projects, nameof(Project.Name)));
-    }
-
-    private static string Lines(params string[] lines)
-    {
-        return string.Join(Environment.NewLine, lines);
     }
 
     private sealed class Project
