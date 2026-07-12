@@ -29,11 +29,11 @@ public static class MarkdownPrinter {
     /// <param name="values">The sequence of values that will be rendered as table rows.</param>
     /// <param name="title">The title displayed above the generated table.</param>
     /// <returns>A markdown table string, or an empty string when the type exposes no printable members.</returns>
-    public static string Print<T>(IEnumerable<T> values, string? title) {
+    public static string Print<T>(IEnumerable<T> values, string? title, MarkdownFormatOptions? formatOptions = null) {
         ArgumentNullException.ThrowIfNull(values);
 
         List<IMemberAccessor> members = GetAllMembers(typeof(T));
-        return BuildTable(values, members, title, formatOptions: null);
+        return BuildTable(values, members, title, formatOptions);
     }
 
     /// <summary>
