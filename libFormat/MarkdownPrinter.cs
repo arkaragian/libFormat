@@ -11,7 +11,7 @@ public static class MarkdownPrinter {
     /// <summary>
     ///     Builds a markdown table containing all public readable properties and
     ///     public fields from the specified values. Column headers use <see cref="MDCollumnNameAttribute"/>
-    ///     when it is applied to a member.
+    ///     when it is applied to a member. Members marked with <see cref="MDIgnoreAttribute"/> are excluded.
     /// </summary>
     /// <typeparam name="T">The item type to render.</typeparam>
     /// <param name="values">The sequence of values that will be rendered as table rows.</param>
@@ -23,6 +23,7 @@ public static class MarkdownPrinter {
     /// <summary>
     /// Builds a markdown table containing all public readable properties and public fields from the specified values.
     /// Column headers use <see cref="MDCollumnNameAttribute"/> when it is applied to a member.
+    /// Members marked with <see cref="MDIgnoreAttribute"/> are excluded.
     /// When a title is provided it is emitted as a markdown heading immediately above the table.
     /// </summary>
     /// <typeparam name="T">The item type to render.</typeparam>
@@ -39,6 +40,7 @@ public static class MarkdownPrinter {
     /// <summary>
     /// Builds a markdown table containing only the selected public readable properties and public fields from the specified values.
     /// Column headers use <see cref="MDCollumnNameAttribute"/> when it is applied to a member.
+    /// Members marked with <see cref="MDIgnoreAttribute"/> are excluded.
     /// </summary>
     /// <typeparam name="T">The item type to render.</typeparam>
     /// <param name="values">The sequence of values that will be rendered as table rows.</param>
@@ -51,6 +53,7 @@ public static class MarkdownPrinter {
     /// <summary>
     /// Builds a markdown table containing only the selected public readable properties and public fields from the specified values.
     /// Column headers use <see cref="MDCollumnNameAttribute"/> when it is applied to a member.
+    /// Members marked with <see cref="MDIgnoreAttribute"/> are excluded.
     /// When a title is provided it is emitted as a markdown heading immediately above the table.
     /// </summary>
     /// <typeparam name="T">The item type to render.</typeparam>
@@ -191,11 +194,14 @@ public static class MarkdownPrinter {
 
         members.AddRange(
             type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(property => property.CanRead && property.GetIndexParameters().Length == 0)
+                .Where(property => property.CanRead
+                    && property.GetIndexParameters().Length == 0
+                    && !property.IsDefined(typeof(MDIgnoreAttribute), inherit: true))
                 .Select(property => new PropertyAccessor(property)));
 
         members.AddRange(
             type.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                .Where(field => !field.IsDefined(typeof(MDIgnoreAttribute), inherit: true))
                 .Select(field => new FieldAccessor(field)));
 
         return members;

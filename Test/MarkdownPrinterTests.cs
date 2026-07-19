@@ -132,6 +132,44 @@ public class MarkdownPrinterTests
     }
 
     [Fact]
+    public void Print_MembersWithMDIgnoreAttribute_AreExcluded()
+    {
+        IgnoredMembers[] items =
+        [
+            new() { Name = "Visible", Secret = "property", InternalCode = "field" }
+        ];
+
+        string markdown = MarkdownPrinter.Print(items);
+        string expected = """
+            | Name    |
+            | ------- |
+            | Visible |
+            """;
+
+        Assert.Equal(expected, markdown);
+    }
+
+    [Fact]
+    public void Print_WithSelectedMembers_DoesNotIncludeMembersWithMDIgnoreAttribute()
+    {
+        IgnoredMembers[] items =
+        [
+            new() { Name = "Visible", Secret = "property", InternalCode = "field" }
+        ];
+
+        string markdown = MarkdownPrinter.Print(
+            items,
+            [nameof(IgnoredMembers.Secret), nameof(IgnoredMembers.InternalCode), nameof(IgnoredMembers.Name)]);
+        string expected = """
+            | Name    |
+            | ------- |
+            | Visible |
+            """;
+
+        Assert.Equal(expected, markdown);
+    }
+
+    [Fact]
     public void GetWidestText_ReturnsWidestStringLength()
     {
         Assert.Equal(9, TextWidthProvider.GetWidestText(["one", "three", "migration"]));
@@ -177,5 +215,16 @@ public class MarkdownPrinterTests
         public string Name { get; init; } = string.Empty;
 
         public DateTime DueDate { get; init; }
+    }
+
+    private sealed class IgnoredMembers
+    {
+        public string Name { get; init; } = string.Empty;
+
+        [MDIgnore]
+        public string Secret { get; init; } = string.Empty;
+
+        [MDIgnore]
+        public string InternalCode = string.Empty;
     }
 }
