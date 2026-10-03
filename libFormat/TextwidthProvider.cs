@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace libFormat;
@@ -22,6 +23,7 @@ public class TextWidthProvider {
     /// Retrieves the width of the widest text containeed in the <paramref name="propertyName"/>
     /// property for the object insances contained in the <paramref name="objects"/> argument.
     /// </summary>
+    [RequiresUnreferencedCode("The runtime type's properties may be removed by trimming. Use the property-selector overload for Native AOT.")]
     public static int GetWidestText<T>(List<T>? objects, string propertyName) {
 
         if (objects is null || objects.Count is 0) {
@@ -52,5 +54,30 @@ public class TextWidthProvider {
 
 
         return GetWidestText(strings);
+    }
+
+    /// <summary>
+    /// Retrieves the width of the widest string selected from the non-null objects.
+    /// </summary>
+    public static int GetWidestText<T>(List<T>? objects, Func<T, string?> selector) {
+        ArgumentNullException.ThrowIfNull(selector);
+
+        if (objects is null || objects.Count is 0) {
+            return 0;
+        }
+
+        int width = 0;
+        foreach (T obj in objects) {
+            if (obj is null) {
+                continue;
+            }
+
+            string? value = selector(obj);
+            if (value is not null && value.Length > width) {
+                width = value.Length;
+            }
+        }
+
+        return width;
     }
 }

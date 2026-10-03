@@ -6,6 +6,34 @@ or server components that need human-readable Markdown output.
 
 The library targets .NET 10 and has no external package dependencies.
 
+## Native AOT
+
+The library can be used by a Native AOT application. Set `<PublishAot>true</PublishAot>`
+in the consuming application's project and publish for a runtime identifier. The
+library itself enables AOT compatibility analysis with `<IsAotCompatible>true</IsAotCompatible>`.
+
+`MarkdownPrinter.Print<T>` preserves the public properties and fields of `T` for
+reflection. Pass the concrete row type as `T` when its members should become
+columns. The string-based `TextWidthProvider.GetWidestText<T>` overload inspects
+each object's runtime type and is unsafe with trimming. In a Native AOT app, pass
+a selector instead of a property name. With the `Project` type and `projects`
+array from [Basic Usage](#basic-usage):
+
+```csharp
+List<Project> projectList = [.. projects];
+
+int nameWidth = TextWidthProvider.GetWidestText(projectList, project => project.Name);     // 9
+int statusWidth = TextWidthProvider.GetWidestText(projectList, project => project.Status); // 7
+```
+
+The selector can also return `null`. Null list items and null results do not
+contribute to the width:
+
+```csharp
+List<Project?> maybeProjects = [projects[0], null, projects[1]];
+int nameWidth = TextWidthProvider.GetWidestText(maybeProjects, project => project?.Name); // 9
+```
+
 ## Features
 
 - Renders public instance properties and fields as Markdown columns.
@@ -214,13 +242,16 @@ Sets the displayed column heading for a property or field.
 ```csharp
 public static int GetWidestText(List<string> values);
 public static int GetWidestText<T>(List<T>? objects, string propertyName);
+public static int GetWidestText<T>(List<T>? objects, Func<T, string?> selector);
 ```
 
 The first overload returns the length of the longest string, or zero for an
 empty list. The generic overload finds a named public string property on each
 non-null object and returns the longest value length. It returns zero when the
 input is null or empty, the property is absent, or all matching values are
-null.
+null. The selector overload reads values without reflection and is suitable for
+Native AOT. It returns zero for a null or empty list, or when every selected
+value is null, and throws `ArgumentNullException` for a null selector.
 
 `MarkdownPrinter` uses `TextWidthProvider` internally to align generated table
 cells.

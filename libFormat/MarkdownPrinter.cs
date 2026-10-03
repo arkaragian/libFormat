@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 
@@ -16,7 +17,7 @@ public static class MarkdownPrinter {
     /// <typeparam name="T">The item type to render.</typeparam>
     /// <param name="values">The sequence of values that will be rendered as table rows.</param>
     /// <returns>A markdown table string, or an empty string when the type exposes no printable members.</returns>
-    public static string Print<T>(IEnumerable<T> values) {
+    public static string Print<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> values) {
         return Print(values, title: null);
     }
 
@@ -30,7 +31,7 @@ public static class MarkdownPrinter {
     /// <param name="values">The sequence of values that will be rendered as table rows.</param>
     /// <param name="title">The title displayed above the generated table.</param>
     /// <returns>A markdown table string, or an empty string when the type exposes no printable members.</returns>
-    public static string Print<T>(IEnumerable<T> values, string? title, MarkdownFormatOptions? formatOptions = null) {
+    public static string Print<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> values, string? title, MarkdownFormatOptions? formatOptions = null) {
         ArgumentNullException.ThrowIfNull(values);
 
         List<IMemberAccessor> members = GetAllMembers(typeof(T));
@@ -46,7 +47,7 @@ public static class MarkdownPrinter {
     /// <param name="values">The sequence of values that will be rendered as table rows.</param>
     /// <param name="memberNames">The member names to include as table columns, in the order they should appear.</param>
     /// <returns>A markdown table string, or an empty string when none of the requested members can be printed.</returns>
-    public static string Print<T>(IEnumerable<T> values, List<string> memberNames) {
+    public static string Print<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> values, List<string> memberNames) {
         return Print(values, memberNames, title: null);
     }
 
@@ -61,7 +62,7 @@ public static class MarkdownPrinter {
     /// <param name="memberNames">The member names to include as table columns, in the order they should appear.</param>
     /// <param name="title">The title displayed above the generated table.</param>
     /// <returns>A markdown table string, or an empty string when none of the requested members can be printed.</returns>
-    public static string Print<T>(IEnumerable<T> values, List<string> memberNames, string? title) {
+    public static string Print<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> values, List<string> memberNames, string? title) {
         ArgumentNullException.ThrowIfNull(values);
         ArgumentNullException.ThrowIfNull(memberNames);
 
@@ -189,7 +190,7 @@ public static class MarkdownPrinter {
     /// </summary>
     /// <param name="type">The type whose printable members will be collected.</param>
     /// <returns>A list of member accessors in the order they were discovered.</returns>
-    private static List<IMemberAccessor> GetAllMembers(Type type) {
+    private static List<IMemberAccessor> GetAllMembers([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type) {
         List<IMemberAccessor> members = [];
 
         members.AddRange(
@@ -213,7 +214,7 @@ public static class MarkdownPrinter {
     /// <param name="type">The type whose printable members will be searched.</param>
     /// <param name="memberNames">The member names to include, in the order they should be returned.</param>
     /// <returns>A list of member accessors matching the requested names.</returns>
-    private static List<IMemberAccessor> GetSelectedMembers(Type type, IEnumerable<string> memberNames) {
+    private static List<IMemberAccessor> GetSelectedMembers([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type, IEnumerable<string> memberNames) {
         Dictionary<string, IMemberAccessor> availableMembers = GetAllMembers(type)
             .ToDictionary(member => member.Name, StringComparer.Ordinal);
 
